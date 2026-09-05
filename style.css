@@ -931,3 +931,9 @@ main {
     }
 
 }
+.horror-haverok-link {
+    color: #ff4d67;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.2s ease;
+}
