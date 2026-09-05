@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horror Haverok Tier List</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+    <h1>Horror Haverok Tier List</h1>
+    <p>Állítsd össze a saját tier listádat!</p>
+</header>
+
+<div class="controls">
+
+    <label class="upload-label">
+        🖼️ Képek feltöltése
+        <input type="file" id="imageInput" accept="image/*" multiple>
+    </label>
+
+    <button onclick="addTier()">➕ Új Tier</button>
+    <button onclick="resetList()">🔄 Újrakezdés</button>
+
+</div>
+
+<main>
+
+    <div class="tier-container" id="tierContainer"></div>
+
+    <section class="image-library">
+
+        <div class="library-header">
+            <h2>📦 Képek</h2>
+            <span class="image-count" id="imageCount">0 kép</span>
+        </div>
+
+        <div id="imagePool">
+            <div class="empty-message">
+                Tölts fel képeket, majd húzd őket a tier-ekbe!
+            </div>
+        </div>
+
+    </section>
+
+</main>
+
+<script src="script.js"></script>
+
+</body>
+</html>
