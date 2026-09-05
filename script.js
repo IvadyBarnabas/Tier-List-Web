@@ -636,7 +636,42 @@ function getDragAfterElement(
 // TIER LIST MENTÉSE
 // ==========================================
 
-function saveTierList() {
+function compressImage(src) {
+
+    return new Promise((resolve, reject) => {
+
+        const image = new Image();
+
+        image.onload = function () {
+
+            const maxSize = 1200;
+            const scale = Math.min(
+                1,
+                maxSize / Math.max(image.naturalWidth, image.naturalHeight)
+            );
+
+            const canvas = document.createElement("canvas");
+
+            canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+            canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+            canvas
+                .getContext("2d")
+                .drawImage(image, 0, 0, canvas.width, canvas.height);
+
+            resolve(
+                canvas.toDataURL("image/jpeg", 0.8)
+            );
+
+        };
+
+        image.onerror = reject;
+        image.src = src;
+
+    });
+}
+
+async function saveTierList() {
 
     let name =
         listTitle.innerText.trim();
@@ -750,6 +785,33 @@ function saveTierList() {
         });
 
 
+    // A kepeket tomoritjuk, hogy a mentett listak
+    // ne lepjék túl a localStorage tárhelykorlátját.
+    const allImages = [
+        ...tiers.flatMap(tier => tier.images),
+        ...pool
+    ];
+
+    const compressedImages =
+        await Promise.all(
+            allImages.map(src => compressImage(src))
+        );
+
+    let imageIndex = 0;
+
+    tiers.forEach(tier => {
+
+        tier.images = tier.images.map(() => {
+            return compressedImages[imageIndex++];
+        });
+
+    });
+
+    for (let index = 0; index < pool.length; index++) {
+        pool[index] = compressedImages[imageIndex++];
+    }
+
+
     // ======================================
     // KORÁBBI LISTA KERESÉSE
     // ======================================
@@ -839,10 +901,21 @@ function saveTierList() {
     }
 
 
-    localStorage.setItem(
-        "savedTierLists",
-        JSON.stringify(saved)
-    );
+    try {
+
+        localStorage.setItem(
+            "savedTierLists",
+            JSON.stringify(saved)
+        );
+
+    } catch (error) {
+
+        alert(
+            "A képek túl sok helyet foglalnak. Tölts fel kevesebb vagy kisebb képet, majd próbáld újra."
+        );
+
+        return;
+    }
 
 
     alert(
