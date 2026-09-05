@@ -1,89 +1,77 @@
 
-const tierContainer =
-    document.getElementById("tierContainer");
+// ==========================================
+// TIER LIST MAKER
+// ==========================================
 
-const imagePool =
-    document.getElementById("imagePool");
+// HTML elemek
+const tierContainer = document.getElementById("tierContainer");
+const imagePool = document.getElementById("imagePool");
+const imageInput = document.getElementById("imageInput");
+const imageCount = document.getElementById("imageCount");
+const listTitle = document.getElementById("listTitle");
 
-const imageInput =
-    document.getElementById("imageInput");
-
-const imageCount =
-    document.getElementById("imageCount");
-
-const listTitle =
-    document.getElementById("listTitle");
-
-const editorPage =
-    document.getElementById("editorPage");
-
-const savedPage =
-    document.getElementById("savedPage");
-
-const savedLists =
-    document.getElementById("savedLists");
+const editorPage = document.getElementById("editorPage");
+const savedPage = document.getElementById("savedPage");
+const savedLists = document.getElementById("savedLists");
 
 
+// Éppen húzott elem
 let draggedElement = null;
 
 
-/* =========================
-   ALAP TIEREK
-========================= */
+// ==========================================
+// ALAP TIER-EK
+// ==========================================
 
 const defaultTiers = [
-
     {
         name: "S",
         color: "#ff6666"
     },
-
     {
         name: "A",
         color: "#ffae5d"
     },
-
     {
         name: "B",
         color: "#ffe066"
     },
-
     {
         name: "C",
         color: "#8bd38b"
     },
-
     {
         name: "D",
         color: "#6da8ff"
     }
-
 ];
 
 
-/* =========================
-   INDÍTÁS
-========================= */
+// ==========================================
+// OLDAL INDÍTÁSA
+// ==========================================
 
 createDefaultTiers();
 
+updateEmptyMessage();
+updateImageCount();
 
-/* =========================
-   ÚJ TIER
-========================= */
+
+// ==========================================
+// TIER LÉTREHOZÁSA
+// ==========================================
 
 function createTier(name, color) {
 
-    const tier =
-        document.createElement("div");
+    const tier = document.createElement("div");
 
     tier.className = "tier";
 
     tier.innerHTML = `
-
+    
         <div
             class="tier-label"
-            style="background:${color}"
+            style="background: ${color}"
         >
 
             <div
@@ -91,7 +79,7 @@ function createTier(name, color) {
                 contenteditable="true"
                 spellcheck="false"
             >
-                ${name}
+                ${escapeHTML(name)}
             </div>
 
             <div class="tier-buttons">
@@ -123,18 +111,25 @@ function createTier(name, color) {
     tierContainer.appendChild(tier);
 
 
+    // Drag & Drop beállítása
     setupDropZone(
         tier.querySelector(".tier-items")
     );
 
 
-    tier.querySelector(".tier-name")
+    // Tier név változásának figyelése
+    tier
+        .querySelector(".tier-name")
         .addEventListener(
             "input",
             updateCurrentTitle
         );
 }
 
+
+// ==========================================
+// ALAP TIER-EK LÉTREHOZÁSA
+// ==========================================
 
 function createDefaultTiers() {
 
@@ -148,13 +143,12 @@ function createDefaultTiers() {
         );
 
     });
-
 }
 
 
-/* =========================
-   ÚJ TIER GOMB
-========================= */
+// ==========================================
+// ÚJ TIER
+// ==========================================
 
 function addTier() {
 
@@ -165,13 +159,12 @@ function addTier() {
         "Tier " + number,
         "#777777"
     );
-
 }
 
 
-/* =========================
-   TIER TÖRLÉSE
-========================= */
+// ==========================================
+// TIER TÖRLÉSE
+// ==========================================
 
 function deleteTier(button) {
 
@@ -179,6 +172,8 @@ function deleteTier(button) {
         button.closest(".tier");
 
 
+    // A tierben lévő képeket visszatesszük
+    // a képtárba
     const images =
         tier.querySelectorAll(".tier-image");
 
@@ -189,7 +184,13 @@ function deleteTier(button) {
             img.closest(".pool-item");
 
 
-        imagePool.appendChild(wrapper);
+        if (wrapper) {
+
+            imagePool.appendChild(
+                wrapper
+            );
+
+        }
 
     });
 
@@ -198,23 +199,26 @@ function deleteTier(button) {
 
 
     updateImageCount();
+    updateEmptyMessage();
 }
 
 
-/* =========================
-   SZÍN
-========================= */
+// ==========================================
+// TIER SZÍNÉNEK MÓDOSÍTÁSA
+// ==========================================
 
 function changeTierColor(button) {
 
     const newColor =
         prompt(
-            "Add meg a színt hex formátumban:",
+            "Add meg a tier színét hex formátumban:",
             "#777777"
         );
 
 
-    if (!newColor) return;
+    if (!newColor) {
+        return;
+    }
 
 
     const label =
@@ -223,35 +227,48 @@ function changeTierColor(button) {
 
     label.style.background =
         newColor;
-
 }
 
 
-/* =========================
-   LISTA ÁTNEVEZÉSE
-========================= */
+// ==========================================
+// LISTA ÁTNEVEZÉSE
+// ==========================================
 
 function renameList() {
+
+    const currentName =
+        listTitle.innerText.trim();
+
 
     const newName =
         prompt(
             "Mi legyen a tier list neve?",
-            listTitle.innerText
+            currentName
         );
 
 
-    if (!newName) return;
+    if (!newName) {
+        return;
+    }
+
+
+    const cleanName =
+        newName.trim();
+
+
+    if (!cleanName) {
+        return;
+    }
 
 
     listTitle.innerText =
-        newName.trim();
-
+        cleanName;
 }
 
 
-/* =========================
-   KÉPEK FELTÖLTÉSE
-========================= */
+// ==========================================
+// KÉPEK FELTÖLTÉSE
+// ==========================================
 
 imageInput.addEventListener(
     "change",
@@ -263,6 +280,7 @@ imageInput.addEventListener(
 
         files.forEach(file => {
 
+            // Csak képeket engedünk
             if (
                 !file.type.startsWith("image/")
             ) {
@@ -289,15 +307,16 @@ imageInput.addEventListener(
         });
 
 
+        // Input resetelése
         this.value = "";
 
     }
 );
 
 
-/* =========================
-   KÉP LÉTREHOZÁSA
-========================= */
+// ==========================================
+// KÉP LÉTREHOZÁSA
+// ==========================================
 
 function createImage(src) {
 
@@ -337,15 +356,13 @@ function createImage(src) {
 
 
     updateEmptyMessage();
-
     updateImageCount();
-
 }
 
 
-/* =========================
-   TÖRLÉS GOMB
-========================= */
+// ==========================================
+// KÉP TÖRLÉSE
+// ==========================================
 
 function addDeleteButton(wrapper) {
 
@@ -357,7 +374,12 @@ function addDeleteButton(wrapper) {
         "delete-image";
 
 
-    button.innerText = "×";
+    button.innerText =
+        "×";
+
+
+    button.title =
+        "Kép törlése";
 
 
     button.onclick =
@@ -365,23 +387,23 @@ function addDeleteButton(wrapper) {
 
             event.stopPropagation();
 
+
             wrapper.remove();
 
-            updateEmptyMessage();
 
+            updateEmptyMessage();
             updateImageCount();
 
         };
 
 
     wrapper.appendChild(button);
-
 }
 
 
-/* =========================
-   DRAG
-========================= */
+// ==========================================
+// DRAG INDÍTÁSA
+// ==========================================
 
 function setupDrag(element) {
 
@@ -391,6 +413,7 @@ function setupDrag(element) {
 
             draggedElement =
                 element;
+
 
             element.classList.add(
                 "dragging"
@@ -408,8 +431,10 @@ function setupDrag(element) {
                 "dragging"
             );
 
+
             draggedElement =
                 null;
+
 
             updateEmptyMessage();
 
@@ -419,9 +444,9 @@ function setupDrag(element) {
 }
 
 
-/* =========================
-   DROP ZÓNA
-========================= */
+// ==========================================
+// DROP ZÓNA
+// ==========================================
 
 function setupDropZone(zone) {
 
@@ -472,6 +497,7 @@ function setupDropZone(zone) {
 
             event.preventDefault();
 
+
             updateEmptyMessage();
 
         }
@@ -480,9 +506,9 @@ function setupDropZone(zone) {
 }
 
 
-/* =========================
-   KÉPTÁR DROP
-========================= */
+// ==========================================
+// KÉPTÁR DROP
+// ==========================================
 
 imagePool.addEventListener(
     "dragover",
@@ -504,7 +530,9 @@ imagePool.addEventListener(
             );
 
 
-        if (afterElement === null) {
+        if (
+            afterElement === null
+        ) {
 
             imagePool.appendChild(
                 draggedElement
@@ -529,15 +557,16 @@ imagePool.addEventListener(
 
         event.preventDefault();
 
+
         updateEmptyMessage();
 
     }
 );
 
 
-/* =========================
-   DRAG POZÍCIÓ
-========================= */
+// ==========================================
+// DRAG POZÍCIÓ KISZÁMÍTÁSA
+// ==========================================
 
 function getDragAfterElement(
     container,
@@ -586,8 +615,11 @@ function getDragAfterElement(
 
             closest = {
 
-                offset,
-                element
+                offset:
+                    offset,
+
+                element:
+                    element
 
             };
 
@@ -597,13 +629,12 @@ function getDragAfterElement(
 
 
     return closest.element;
-
 }
 
 
-/* =========================
-   MENTÉS
-========================= */
+// ==========================================
+// TIER LIST MENTÉSE
+// ==========================================
 
 function saveTierList() {
 
@@ -611,6 +642,7 @@ function saveTierList() {
         listTitle.innerText.trim();
 
 
+    // Ha nincs név, kérünk egyet
     if (
         !name ||
         name === "Új Tier List"
@@ -631,11 +663,19 @@ function saveTierList() {
             enteredName.trim();
 
 
+        if (!name) {
+            return;
+        }
+
+
         listTitle.innerText =
             name;
-
     }
 
+
+    // ======================================
+    // TIEREK ÖSSZEGYŰJTÉSE
+    // ======================================
 
     const tiers = [];
 
@@ -653,7 +693,9 @@ function saveTierList() {
             const tierName =
                 tier.querySelector(
                     ".tier-name"
-                ).innerText.trim();
+                )
+                .innerText
+                .trim();
 
 
             const images = [];
@@ -680,12 +722,17 @@ function saveTierList() {
                 color:
                     label.style.background,
 
-                images
+                images:
+                    images
 
             });
 
         });
 
+
+    // ======================================
+    // KÉPTÁR ÖSSZEGYŰJTÉSE
+    // ======================================
 
     const pool = [];
 
@@ -703,24 +750,9 @@ function saveTierList() {
         });
 
 
-    const savedList = {
-
-        id:
-            Date.now(),
-
-        name,
-
-        created:
-            new Date().toLocaleString(
-                "hu-HU"
-            ),
-
-        tiers,
-
-        pool
-
-    };
-
+    // ======================================
+    // KORÁBBI LISTA KERESÉSE
+    // ======================================
 
     const saved =
         JSON.parse(
@@ -730,10 +762,61 @@ function saveTierList() {
         ) || [];
 
 
-    /*
-        Ha ugyanilyen nevű lista van,
-        akkor azt frissítjük.
-    */
+    const existing =
+        saved.find(
+            list =>
+                list.name === name
+        );
+
+
+    // ======================================
+    // LISTA OBJEKTUM
+    // ======================================
+
+    const savedList = {
+
+        id:
+            existing
+                ? existing.id
+                : Date.now(),
+
+
+        name:
+            name,
+
+
+        created:
+            existing
+                ? existing.created
+                : new Date().toLocaleString(
+                    "hu-HU"
+                ),
+
+
+        /*
+            Ha a listának már volt
+            borítóképe, megtartjuk.
+        */
+
+        coverImage:
+            existing
+                ? existing.coverImage || null
+                : null,
+
+
+        tiers:
+            tiers,
+
+
+        pool:
+            pool
+
+    };
+
+
+    // ======================================
+    // MENTÉS / FRISSÍTÉS
+    // ======================================
 
     const existingIndex =
         saved.findIndex(
@@ -768,31 +851,46 @@ function saveTierList() {
 
 
     showSavedLists();
-
 }
 
 
-/* =========================
-   MENTETT LISTÁK MEGJELENÍTÉSE
-========================= */
+// ==========================================
+// MENTETT LISTÁK OLDALA
+// ==========================================
 
 function showSavedLists() {
 
     editorPage.style.display =
         "none";
 
+
     savedPage.style.display =
         "block";
 
 
     renderSavedLists();
+}
+
+
+// ==========================================
+// SZERKESZTŐ OLDAL
+// ==========================================
+
+function showEditor() {
+
+    editorPage.style.display =
+        "block";
+
+
+    savedPage.style.display =
+        "none";
 
 }
 
 
-/* =========================
-   LISTÁK KIRAJZOLÁSA
-========================= */
+// ==========================================
+// MENTETT LISTÁK KIRAJZOLÁSA
+// ==========================================
 
 function renderSavedLists() {
 
@@ -807,22 +905,44 @@ function renderSavedLists() {
         ) || [];
 
 
+    // Nincs még lista
     if (saved.length === 0) {
 
         savedLists.innerHTML = `
 
-            <div class="empty-message">
+            <div class="no-saved-lists">
 
-                Még nincs mentett tier listád.
+                <div class="no-saved-icon">
+                    📋
+                </div>
+
+                <h2>
+                    Még nincs mentett tier listád
+                </h2>
+
+                <p>
+                    Készíts egy tier listát,
+                    majd mentsd el!
+                </p>
+
+                <button
+                    class="primary-button"
+                    onclick="showEditor()"
+                >
+                    ➕ Első Tier List létrehozása
+                </button>
 
             </div>
 
         `;
 
         return;
-
     }
 
+
+    // ======================================
+    // LISTÁK
+    // ======================================
 
     saved.forEach(list => {
 
@@ -836,17 +956,56 @@ function renderSavedLists() {
             "saved-card";
 
 
-        /*
-            A previewhoz összeszedjük
-            az első néhány képet.
-        */
+        // ==================================
+        // BORÍTÓ
+        // ==================================
 
-        const previewImages = [];
+        let coverHTML = "";
 
 
-        list.tiers.forEach(tier => {
+        // Ha van saját borítókép
+        if (list.coverImage) {
 
-            tier.images.forEach(img => {
+            coverHTML = `
+
+                <img
+                    class="saved-cover"
+                    src="${list.coverImage}"
+                    alt="${escapeHTML(list.name)}"
+                >
+
+            `;
+
+        } else {
+
+            // Ha nincs saját borító,
+            // az első képekből készítünk preview-t
+
+            const previewImages = [];
+
+
+            // Tier képek
+            list.tiers.forEach(tier => {
+
+                tier.images.forEach(img => {
+
+                    if (
+                        previewImages.length < 4
+                    ) {
+
+                        previewImages.push(
+                            img
+                        );
+
+                    }
+
+                });
+
+            });
+
+
+            // Képtár képei
+            list.pool.forEach(img => {
 
                 if (
                     previewImages.length < 4
@@ -860,39 +1019,96 @@ function renderSavedLists() {
 
             });
 
-        });
 
+            if (
+                previewImages.length > 0
+            ) {
 
-        let preview = "";
+                coverHTML = `
 
+                    <div class="saved-auto-preview">
 
-        if (
-            previewImages.length === 0
-        ) {
-
-            preview = `
-                <div class="saved-preview-empty">
-                    Nincsenek képek
-                </div>
-            `;
-
-        } else {
-
-            previewImages.forEach(img => {
-
-                preview += `
-                    <img src="${img}">
                 `;
 
-            });
+
+                previewImages.forEach(img => {
+
+                    coverHTML += `
+
+                        <img
+                            src="${img}"
+                            alt=""
+                        >
+
+                    `;
+
+                });
+
+
+                coverHTML += `
+
+                    </div>
+
+                `;
+
+            } else {
+
+                // Ha tényleg nincs kép
+                coverHTML = `
+
+                    <div class="saved-no-cover">
+
+                        <div>
+                            🎨
+                        </div>
+
+                        <span>
+                            Tier List
+                        </span>
+
+                    </div>
+
+                `;
+
+            }
 
         }
 
 
+        // ==================================
+        // KÁRTYA
+        // ==================================
+
         card.innerHTML = `
 
             <div class="saved-preview">
-                ${preview}
+
+                ${coverHTML}
+
+
+                <div class="cover-overlay">
+
+                    <button
+                        onclick="setCoverImage(${list.id})"
+                    >
+                        🖼️ Borító
+                    </button>
+
+
+                    ${
+                        list.coverImage
+                        ? `
+                            <button
+                                onclick="removeCoverImage(${list.id})"
+                            >
+                                🗑️
+                            </button>
+                        `
+                        : ""
+                    }
+
+                </div>
+
             </div>
 
 
@@ -902,8 +1118,12 @@ function renderSavedLists() {
                     ${escapeHTML(list.name)}
                 </h3>
 
+
                 <div class="saved-date">
-                    ${list.created}
+
+                    Mentve:
+                    ${escapeHTML(list.created)}
+
                 </div>
 
 
@@ -938,11 +1158,108 @@ function renderSavedLists() {
 }
 
 
-/* =========================
-   MENTETT LISTA MEGNYITÁSA
-========================= */
+// ==========================================
+// BORÍTÓKÉP KIVÁLASZTÁSA
+// ==========================================
 
-function openSavedList(id) {
+function setCoverImage(id) {
+
+    const input =
+        document.createElement(
+            "input"
+        );
+
+
+    input.type =
+        "file";
+
+
+    input.accept =
+        "image/*";
+
+
+    input.onchange =
+        function () {
+
+            const file =
+                input.files[0];
+
+
+            if (!file) {
+                return;
+            }
+
+
+            if (
+                !file.type.startsWith("image/")
+            ) {
+
+                alert(
+                    "Csak képfájlt választhatsz!"
+                );
+
+                return;
+            }
+
+
+            const reader =
+                new FileReader();
+
+
+            reader.onload =
+                function (event) {
+
+                    const saved =
+                        JSON.parse(
+                            localStorage.getItem(
+                                "savedTierLists"
+                            )
+                        ) || [];
+
+
+                    const list =
+                        saved.find(
+                            item =>
+                                item.id === id
+                        );
+
+
+                    if (!list) {
+                        return;
+                    }
+
+
+                    // Borító elmentése
+                    list.coverImage =
+                        event.target.result;
+
+
+                    localStorage.setItem(
+                        "savedTierLists",
+                        JSON.stringify(saved)
+                    );
+
+
+                    renderSavedLists();
+
+                };
+
+
+            reader.readAsDataURL(file);
+
+        };
+
+
+    input.click();
+
+}
+
+
+// ==========================================
+// BORÍTÓKÉP TÖRLÉSE
+// ==========================================
+
+function removeCoverImage(id) {
 
     const saved =
         JSON.parse(
@@ -964,18 +1281,77 @@ function openSavedList(id) {
     }
 
 
+    const confirmed =
+        confirm(
+            "Biztosan törölni szeretnéd a borítóképet?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    list.coverImage =
+        null;
+
+
+    localStorage.setItem(
+        "savedTierLists",
+        JSON.stringify(saved)
+    );
+
+
+    renderSavedLists();
+
+}
+
+
+// ==========================================
+// MENTETT LISTA MEGNYITÁSA
+// ==========================================
+
+function openSavedList(id) {
+
+    const saved =
+        JSON.parse(
+            localStorage.getItem(
+                "savedTierLists"
+            )
+        ) || [];
+
+
+    const list =
+        saved.find(
+            item =>
+                item.id === id
+        );
+
+
+    if (!list) {
+
+        alert(
+            "A tier list nem található."
+        );
+
+        return;
+    }
+
+
+    // Editor ürítése
     tierContainer.innerHTML = "";
 
     imagePool.innerHTML = "";
 
 
+    // Cím visszaállítása
     listTitle.innerText =
         list.name;
 
 
-    /*
-        Tier-ek visszaállítása
-    */
+    // ======================================
+    // TIEREK VISSZAÁLLÍTÁSA
+    // ======================================
 
     list.tiers.forEach(tier => {
 
@@ -995,12 +1371,11 @@ function openSavedList(id) {
             );
 
 
+        // Tier képei
         tier.images.forEach(src => {
 
             const wrapper =
-                createImageElement(
-                    src
-                );
+                createImageElement(src);
 
 
             zone.appendChild(
@@ -1012,16 +1387,14 @@ function openSavedList(id) {
     });
 
 
-    /*
-        Képtár visszaállítása
-    */
+    // ======================================
+    // KÉPTÁR VISSZAÁLLÍTÁSA
+    // ======================================
 
     list.pool.forEach(src => {
 
         const wrapper =
-            createImageElement(
-                src
-            );
+            createImageElement(src);
 
 
         imagePool.appendChild(
@@ -1032,18 +1405,18 @@ function openSavedList(id) {
 
 
     updateImageCount();
-
     updateEmptyMessage();
 
 
+    // Editor megjelenítése
     showEditor();
 
 }
 
 
-/* =========================
-   KÉP ELEMENT LÉTREHOZÁSA
-========================= */
+// ==========================================
+// KÉP ELEMENT LÉTREHOZÁSA
+// ==========================================
 
 function createImageElement(src) {
 
@@ -1057,7 +1430,8 @@ function createImageElement(src) {
         "pool-item";
 
 
-    wrapper.draggable = true;
+    wrapper.draggable =
+        true;
 
 
     const img =
@@ -1066,15 +1440,21 @@ function createImageElement(src) {
         );
 
 
-    img.src = src;
+    img.src =
+        src;
+
 
     img.className =
         "tier-image";
 
-    img.draggable = false;
+
+    img.draggable =
+        false;
 
 
-    wrapper.appendChild(img);
+    wrapper.appendChild(
+        img
+    );
 
 
     addDeleteButton(
@@ -1092,19 +1472,19 @@ function createImageElement(src) {
 }
 
 
-/* =========================
-   MENTETT LISTA TÖRLÉSE
-========================= */
+// ==========================================
+// MENTETT LISTA TÖRLÉSE
+// ==========================================
 
 function deleteSavedList(id) {
 
-    const confirmDelete =
+    const confirmed =
         confirm(
             "Biztosan törölni szeretnéd ezt a tier listát?"
         );
 
 
-    if (!confirmDelete) {
+    if (!confirmed) {
         return;
     }
 
@@ -1135,24 +1515,9 @@ function deleteSavedList(id) {
 }
 
 
-/* =========================
-   ÚJ TIER LIST
-========================= */
-
-function showEditor() {
-
-    editorPage.style.display =
-        "block";
-
-    savedPage.style.display =
-        "none";
-
-}
-
-
-/* =========================
-   SZERKESZTŐ ÜRÍTÉSE
-========================= */
+// ==========================================
+// SZERKESZTŐ ÜRÍTÉSE
+// ==========================================
 
 function resetEditor() {
 
@@ -1171,24 +1536,26 @@ function resetEditor() {
         "Új Tier List";
 
 
-    tierContainer.innerHTML = "";
+    tierContainer.innerHTML =
+        "";
 
-    imagePool.innerHTML = "";
+
+    imagePool.innerHTML =
+        "";
 
 
     createDefaultTiers();
 
 
     updateEmptyMessage();
-
     updateImageCount();
 
 }
 
 
-/* =========================
-   ÜRES KÉPTÁR
-========================= */
+// ==========================================
+// ÜRES KÉPTÁR
+// ==========================================
 
 function updateEmptyMessage() {
 
@@ -1219,22 +1586,32 @@ function updateEmptyMessage() {
         !message
     ) {
 
-        imagePool.innerHTML = `
+        const div =
+            document.createElement(
+                "div"
+            );
 
-            <div class="empty-message">
-                Még nincsenek feltöltött képek.
-            </div>
 
-        `;
+        div.className =
+            "empty-message";
+
+
+        div.innerText =
+            "Még nincsenek feltöltött képek.";
+
+
+        imagePool.appendChild(
+            div
+        );
 
     }
 
 }
 
 
-/* =========================
-   KÉPSZÁMLÁLÓ
-========================= */
+// ==========================================
+// KÉPSZÁMLÁLÓ
+// ==========================================
 
 function updateImageCount() {
 
@@ -1250,9 +1627,20 @@ function updateImageCount() {
 }
 
 
-/* =========================
-   HTML BIZTONSÁG
-========================= */
+// ==========================================
+// CÍM VÁLTOZÁS
+// ==========================================
+
+function updateCurrentTitle() {
+
+    // Később autosave-hoz használható
+
+}
+
+
+// ==========================================
+// HTML BIZTONSÁG
+// ==========================================
 
 function escapeHTML(text) {
 
@@ -1269,27 +1657,3 @@ function escapeHTML(text) {
     return div.innerHTML;
 
 }
-
-
-/* =========================
-   CÍM FRISSÍTÉSE
-========================= */
-
-function updateCurrentTitle() {
-
-    /*
-        Ez azért van külön,
-        hogy később könnyen lehessen
-        autosave rendszert hozzáadni.
-    */
-
-}
-
-
-/* =========================
-   OLDAL BETÖLTÉS
-========================= */
-
-updateEmptyMessage();
-
-updateImageCount();
