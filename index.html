@@ -1,53 +1,188 @@
+
 <!DOCTYPE html>
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horror Haverok Tier List</title>
+
+    <title>Tier List Maker</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<header>
-    <h1>Horror Haverok Tier List</h1>
-    <p>Állítsd össze a saját tier listádat!</p>
-</header>
+    <!-- HEADER -->
+    <header class="header">
 
-<div class="controls">
-
-    <label class="upload-label">
-        🖼️ Képek feltöltése
-        <input type="file" id="imageInput" accept="image/*" multiple>
-    </label>
-
-    <button onclick="addTier()">➕ Új Tier</button>
-    <button onclick="resetList()">🔄 Újrakezdés</button>
-
-</div>
-
-<main>
-
-    <div class="tier-container" id="tierContainer"></div>
-
-    <section class="image-library">
-
-        <div class="library-header">
-            <h2>📦 Képek</h2>
-            <span class="image-count" id="imageCount">0 kép</span>
+        <div class="logo">
+            Tier<span>Maker</span>
         </div>
 
-        <div id="imagePool">
-            <div class="empty-message">
-                Tölts fel képeket, majd húzd őket a tier-ekbe!
+        <nav>
+            <button onclick="showEditor()">Új Tier List</button>
+            <button onclick="showSavedLists()">Mentett listák</button>
+        </nav>
+
+    </header>
+
+
+    <!-- =========================
+         TIER LIST EDITOR
+    ========================== -->
+
+    <main id="editorPage">
+
+        <section class="editor-top">
+
+            <div>
+                <h1 id="listTitle">
+                    Új Tier List
+                </h1>
+
+                <p>
+                    Tölts fel képeket és rendezd őket tier-ekbe.
+                </p>
             </div>
-        </div>
 
-    </section>
+            <div class="editor-actions">
 
-</main>
+                <button
+                    class="secondary-button"
+                    onclick="renameList()"
+                >
+                    ✏️ Átnevezés
+                </button>
 
-<script src="script.js"></script>
+                <button
+                    class="primary-button"
+                    onclick="saveTierList()"
+                >
+                    💾 Tier List mentése
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- TIEREK -->
+
+        <section
+            id="tierContainer"
+            class="tier-container"
+        ></section>
+
+
+        <!-- VEZÉRLŐK -->
+
+        <section class="controls">
+
+            <label class="upload-button">
+
+                🖼️ Képek feltöltése
+
+                <input
+                    type="file"
+                    id="imageInput"
+                    accept="image/*"
+                    multiple
+                >
+
+            </label>
+
+
+            <button onclick="addTier()">
+                ➕ Új Tier
+            </button>
+
+
+            <button
+                class="danger-button"
+                onclick="resetEditor()"
+            >
+                🗑️ Szerkesztő ürítése
+            </button>
+
+        </section>
+
+
+        <!-- KÉPTÁR -->
+
+        <section class="image-library">
+
+            <div class="library-title">
+
+                <div>
+                    <h2>📦 Képtár</h2>
+
+                    <p>
+                        Húzd a képeket a kívánt tier-be.
+                    </p>
+                </div>
+
+                <span id="imageCount">
+                    0 kép
+                </span>
+
+            </div>
+
+
+            <div
+                id="imagePool"
+                class="image-pool"
+            >
+
+                <div class="empty-message">
+                    Még nincsenek feltöltött képek.
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================
+         MENTETT LISTÁK
+    ========================== -->
+
+    <main
+        id="savedPage"
+        class="saved-page"
+        style="display:none;"
+    >
+
+        <section class="saved-header">
+
+            <div>
+                <h1>Mentett Tier Listák</h1>
+
+                <p>
+                    Itt találod az elmentett tier listáidat.
+                </p>
+            </div>
+
+            <button
+                class="primary-button"
+                onclick="showEditor()"
+            >
+                ➕ Új Tier List
+            </button>
+
+        </section>
+
+
+        <section
+            id="savedLists"
+            class="saved-lists"
+        ></section>
+
+    </main>
+
+
+    <script src="script.js"></script>
 
 </body>
 </html>

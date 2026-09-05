@@ -1,350 +1,500 @@
-const tierContainer = document.getElementById("tierContainer");
-    const imagePool = document.getElementById("imagePool");
-    const imageInput = document.getElementById("imageInput");
-    const imageCount = document.getElementById("imageCount");
 
-    let imageID = 0;
+const tierContainer =
+    document.getElementById("tierContainer");
 
-    const defaultTiers = [
-        {
-            name: "S",
-            color: "#ff6666"
-        },
-        {
-            name: "A",
-            color: "#ffb347"
-        },
-        {
-            name: "B",
-            color: "#ffe066"
-        },
-        {
-            name: "C",
-            color: "#8fd694"
-        },
-        {
-            name: "D",
-            color: "#6ca6ff"
-        }
-    ];
+const imagePool =
+    document.getElementById("imagePool");
 
-    // -------------------------
-    // TIER LÉTREHOZÁSA
-    // -------------------------
+const imageInput =
+    document.getElementById("imageInput");
 
-    function createTier(name, color) {
+const imageCount =
+    document.getElementById("imageCount");
 
-        const tier = document.createElement("div");
+const listTitle =
+    document.getElementById("listTitle");
 
-        tier.className = "tier";
+const editorPage =
+    document.getElementById("editorPage");
 
-        tier.innerHTML = `
-            <div class="tier-label" style="background:${color}">
+const savedPage =
+    document.getElementById("savedPage");
 
-                <div
-                    class="tier-name"
-                    contenteditable="true"
-                    spellcheck="false"
-                >${name}</div>
+const savedLists =
+    document.getElementById("savedLists");
 
-                <div class="tier-buttons">
 
-                    <button
-                        class="small-button"
-                        onclick="changeColor(this)"
-                    >🎨</button>
+let draggedElement = null;
 
-                    <button
-                        class="small-button"
-                        onclick="removeTier(this)"
-                    >🗑️</button>
 
-                </div>
+/* =========================
+   ALAP TIEREK
+========================= */
+
+const defaultTiers = [
+
+    {
+        name: "S",
+        color: "#ff6666"
+    },
+
+    {
+        name: "A",
+        color: "#ffae5d"
+    },
+
+    {
+        name: "B",
+        color: "#ffe066"
+    },
+
+    {
+        name: "C",
+        color: "#8bd38b"
+    },
+
+    {
+        name: "D",
+        color: "#6da8ff"
+    }
+
+];
+
+
+/* =========================
+   INDÍTÁS
+========================= */
+
+createDefaultTiers();
+
+
+/* =========================
+   ÚJ TIER
+========================= */
+
+function createTier(name, color) {
+
+    const tier =
+        document.createElement("div");
+
+    tier.className = "tier";
+
+    tier.innerHTML = `
+
+        <div
+            class="tier-label"
+            style="background:${color}"
+        >
+
+            <div
+                class="tier-name"
+                contenteditable="true"
+                spellcheck="false"
+            >
+                ${name}
+            </div>
+
+            <div class="tier-buttons">
+
+                <button
+                    class="small-button"
+                    onclick="changeTierColor(this)"
+                >
+                    🎨
+                </button>
+
+                <button
+                    class="small-button"
+                    onclick="deleteTier(this)"
+                >
+                    🗑️
+                </button>
 
             </div>
 
-            <div
-                class="tier-items drop-zone"
-            ></div>
-        `;
-
-        tierContainer.appendChild(tier);
-
-        setupDropZone(tier.querySelector(".tier-items"));
-
-        saveState();
-    }
+        </div>
 
 
-    // -------------------------
-    // ALAP TIER-EK
-    // -------------------------
+        <div class="tier-items drop-zone"></div>
 
-    function createDefaultTiers() {
-
-        tierContainer.innerHTML = "";
-
-        defaultTiers.forEach(tier => {
-            createTier(tier.name, tier.color);
-        });
-
-    }
+    `;
 
 
-    // -------------------------
-    // ÚJ TIER
-    // -------------------------
+    tierContainer.appendChild(tier);
 
-    function addTier() {
 
-        const number = tierContainer.children.length + 1;
+    setupDropZone(
+        tier.querySelector(".tier-items")
+    );
+
+
+    tier.querySelector(".tier-name")
+        .addEventListener(
+            "input",
+            updateCurrentTitle
+        );
+}
+
+
+function createDefaultTiers() {
+
+    tierContainer.innerHTML = "";
+
+    defaultTiers.forEach(tier => {
 
         createTier(
-            "Tier " + number,
+            tier.name,
+            tier.color
+        );
+
+    });
+
+}
+
+
+/* =========================
+   ÚJ TIER GOMB
+========================= */
+
+function addTier() {
+
+    const number =
+        tierContainer.children.length + 1;
+
+    createTier(
+        "Tier " + number,
+        "#777777"
+    );
+
+}
+
+
+/* =========================
+   TIER TÖRLÉSE
+========================= */
+
+function deleteTier(button) {
+
+    const tier =
+        button.closest(".tier");
+
+
+    const images =
+        tier.querySelectorAll(".tier-image");
+
+
+    images.forEach(img => {
+
+        const wrapper =
+            img.closest(".pool-item");
+
+
+        imagePool.appendChild(wrapper);
+
+    });
+
+
+    tier.remove();
+
+
+    updateImageCount();
+}
+
+
+/* =========================
+   SZÍN
+========================= */
+
+function changeTierColor(button) {
+
+    const newColor =
+        prompt(
+            "Add meg a színt hex formátumban:",
             "#777777"
         );
 
-    }
+
+    if (!newColor) return;
 
 
-    // -------------------------
-    // TIER TÖRLÉSE
-    // -------------------------
-
-    function removeTier(button) {
-
-        const tier = button.closest(".tier");
-
-        const items = tier.querySelectorAll(".tier-image");
-
-        items.forEach(img => {
-
-            const wrapper = document.createElement("div");
-
-            wrapper.className = "pool-item";
-
-            wrapper.draggable = true;
-
-            wrapper.appendChild(img);
-
-            addDeleteButton(wrapper);
-
-            imagePool.appendChild(wrapper);
-
-            setupDrag(wrapper);
-
-        });
-
-        tier.remove();
-
-        updateImageCount();
-
-        saveState();
-    }
+    const label =
+        button.closest(".tier-label");
 
 
-    // -------------------------
-    // SZÍN MÓDOSÍTÁSA
-    // -------------------------
+    label.style.background =
+        newColor;
 
-    function changeColor(button) {
+}
 
-        const color = prompt(
-            "Add meg a tier színét hex formátumban:",
-            "#ff6666"
+
+/* =========================
+   LISTA ÁTNEVEZÉSE
+========================= */
+
+function renameList() {
+
+    const newName =
+        prompt(
+            "Mi legyen a tier list neve?",
+            listTitle.innerText
         );
 
-        if (!color) return;
 
-        button
-            .closest(".tier-label")
-            .style.background = color;
-
-        saveState();
-    }
+    if (!newName) return;
 
 
-    // -------------------------
-    // KÉPEK FELTÖLTÉSE
-    // -------------------------
+    listTitle.innerText =
+        newName.trim();
 
-    imageInput.addEventListener("change", function() {
+}
 
-        const files = Array.from(this.files);
+
+/* =========================
+   KÉPEK FELTÖLTÉSE
+========================= */
+
+imageInput.addEventListener(
+    "change",
+    function () {
+
+        const files =
+            Array.from(this.files);
+
 
         files.forEach(file => {
 
-            if (!file.type.startsWith("image/")) return;
+            if (
+                !file.type.startsWith("image/")
+            ) {
+                return;
+            }
 
-            const reader = new FileReader();
 
-            reader.onload = function(event) {
+            const reader =
+                new FileReader();
 
-                createImage(event.target.result);
 
-            };
+            reader.onload =
+                function (event) {
+
+                    createImage(
+                        event.target.result
+                    );
+
+                };
+
 
             reader.readAsDataURL(file);
 
         });
 
+
         this.value = "";
 
-    });
-
-
-    // -------------------------
-    // KÉP LÉTREHOZÁSA
-    // -------------------------
-
-    function createImage(src) {
-
-        const wrapper = document.createElement("div");
-
-        wrapper.className = "pool-item";
-
-        wrapper.draggable = true;
-
-        wrapper.dataset.id = "image-" + imageID++;
-
-        const img = document.createElement("img");
-
-        img.src = src;
-        img.className = "tier-image";
-        img.draggable = false;
-
-        wrapper.appendChild(img);
-
-        addDeleteButton(wrapper);
-
-        imagePool.appendChild(wrapper);
-
-        setupDrag(wrapper);
-
-        updateEmptyMessage();
-        updateImageCount();
-
-        saveState();
     }
+);
 
 
-    // -------------------------
-    // KÉP TÖRLÉSE
-    // -------------------------
+/* =========================
+   KÉP LÉTREHOZÁSA
+========================= */
 
-    function addDeleteButton(wrapper) {
+function createImage(src) {
 
-        const button = document.createElement("button");
+    const wrapper =
+        document.createElement("div");
 
-        button.className = "delete-image";
-        button.innerHTML = "×";
 
-        button.onclick = function(event) {
+    wrapper.className =
+        "pool-item";
+
+
+    wrapper.draggable = true;
+
+
+    const img =
+        document.createElement("img");
+
+
+    img.src = src;
+
+    img.className =
+        "tier-image";
+
+    img.draggable = false;
+
+
+    wrapper.appendChild(img);
+
+
+    addDeleteButton(wrapper);
+
+
+    imagePool.appendChild(wrapper);
+
+
+    setupDrag(wrapper);
+
+
+    updateEmptyMessage();
+
+    updateImageCount();
+
+}
+
+
+/* =========================
+   TÖRLÉS GOMB
+========================= */
+
+function addDeleteButton(wrapper) {
+
+    const button =
+        document.createElement("button");
+
+
+    button.className =
+        "delete-image";
+
+
+    button.innerText = "×";
+
+
+    button.onclick =
+        function (event) {
 
             event.stopPropagation();
 
             wrapper.remove();
 
             updateEmptyMessage();
-            updateImageCount();
 
-            saveState();
+            updateImageCount();
 
         };
 
-        wrapper.appendChild(button);
 
-    }
+    wrapper.appendChild(button);
+
+}
 
 
-    // -------------------------
-    // DRAG & DROP
-    // -------------------------
+/* =========================
+   DRAG
+========================= */
 
-    function setupDrag(element) {
+function setupDrag(element) {
 
-        element.addEventListener("dragstart", function(event) {
+    element.addEventListener(
+        "dragstart",
+        function () {
 
-            element.classList.add("dragging");
+            draggedElement =
+                element;
 
-            event.dataTransfer.setData(
-                "text/plain",
+            element.classList.add(
                 "dragging"
             );
 
-            window.draggedElement = element;
-
-        });
-
-        element.addEventListener("dragend", function() {
-
-            element.classList.remove("dragging");
-
-            window.draggedElement = null;
-
-            saveState();
-
-        });
-
-    }
+        }
+    );
 
 
-    function setupDropZone(zone) {
+    element.addEventListener(
+        "dragend",
+        function () {
 
-        zone.addEventListener("dragover", function(event) {
+            element.classList.remove(
+                "dragging"
+            );
+
+            draggedElement =
+                null;
+
+            updateEmptyMessage();
+
+        }
+    );
+
+}
+
+
+/* =========================
+   DROP ZÓNA
+========================= */
+
+function setupDropZone(zone) {
+
+    zone.addEventListener(
+        "dragover",
+        function (event) {
 
             event.preventDefault();
 
-            const dragging = document.querySelector(".dragging");
 
-            if (!dragging) return;
+            if (!draggedElement) {
+                return;
+            }
 
-            const afterElement = getDragAfterElement(
-                zone,
-                event.clientX,
-                event.clientY
-            );
 
-            if (afterElement == null) {
+            const afterElement =
+                getDragAfterElement(
+                    zone,
+                    event.clientX,
+                    event.clientY
+                );
 
-                zone.appendChild(dragging);
+
+            if (
+                afterElement === null
+            ) {
+
+                zone.appendChild(
+                    draggedElement
+                );
 
             } else {
 
                 zone.insertBefore(
-                    dragging,
+                    draggedElement,
                     afterElement
                 );
 
             }
 
-        });
+        }
+    );
 
-        zone.addEventListener("drop", function(event) {
+
+    zone.addEventListener(
+        "drop",
+        function (event) {
 
             event.preventDefault();
 
             updateEmptyMessage();
 
-            saveState();
+        }
+    );
 
-        });
-
-    }
+}
 
 
-    // -------------------------
-    // KÉPEK VISSZAHÚZÁSA
-    // -------------------------
+/* =========================
+   KÉPTÁR DROP
+========================= */
 
-    imagePool.addEventListener("dragover", function(event) {
+imagePool.addEventListener(
+    "dragover",
+    function (event) {
 
         event.preventDefault();
 
-        const dragging =
-            document.querySelector(".dragging");
 
-        if (!dragging) return;
+        if (!draggedElement) {
+            return;
+        }
+
 
         const afterElement =
             getDragAfterElement(
@@ -353,315 +503,793 @@ const tierContainer = document.getElementById("tierContainer");
                 event.clientY
             );
 
-        if (afterElement == null) {
 
-            imagePool.appendChild(dragging);
+        if (afterElement === null) {
+
+            imagePool.appendChild(
+                draggedElement
+            );
 
         } else {
 
             imagePool.insertBefore(
-                dragging,
+                draggedElement,
                 afterElement
             );
 
         }
 
-    });
+    }
+);
 
 
-    imagePool.addEventListener("drop", function(event) {
+imagePool.addEventListener(
+    "drop",
+    function (event) {
 
         event.preventDefault();
 
         updateEmptyMessage();
-        saveState();
+
+    }
+);
+
+
+/* =========================
+   DRAG POZÍCIÓ
+========================= */
+
+function getDragAfterElement(
+    container,
+    x,
+    y
+) {
+
+    const elements =
+        [
+            ...container.querySelectorAll(
+                ".pool-item"
+            )
+        ].filter(
+            element =>
+                element !== draggedElement
+        );
+
+
+    let closest = {
+
+        offset:
+            Number.NEGATIVE_INFINITY,
+
+        element:
+            null
+
+    };
+
+
+    elements.forEach(element => {
+
+        const box =
+            element.getBoundingClientRect();
+
+
+        const offset =
+            x -
+            box.left -
+            box.width / 2;
+
+
+        if (
+            offset < 0 &&
+            offset > closest.offset
+        ) {
+
+            closest = {
+
+                offset,
+                element
+
+            };
+
+        }
 
     });
 
 
-    // -------------------------
-    // DRAG POZÍCIÓ
-    // -------------------------
+    return closest.element;
 
-    function getDragAfterElement(container, x, y) {
+}
 
-        const elements = [
-            ...container.querySelectorAll(
-                ".tier-image, .pool-item"
-            )
-        ].filter(
-            element =>
-                !element.classList.contains("dragging")
-        );
 
-        let closest = {
-            offset: Number.NEGATIVE_INFINITY,
-            element: null
-        };
+/* =========================
+   MENTÉS
+========================= */
 
-        elements.forEach(element => {
+function saveTierList() {
 
-            const box =
-                element.getBoundingClientRect();
+    let name =
+        listTitle.innerText.trim();
 
-            const offset =
-                x -
-                box.left -
-                box.width / 2;
 
-            if (
-                offset < 0 &&
-                offset > closest.offset
-            ) {
+    if (
+        !name ||
+        name === "Új Tier List"
+    ) {
 
-                closest = {
-                    offset: offset,
-                    element: element
-                };
+        const enteredName =
+            prompt(
+                "Mi legyen a tier list neve?"
+            );
 
-            }
+
+        if (!enteredName) {
+            return;
+        }
+
+
+        name =
+            enteredName.trim();
+
+
+        listTitle.innerText =
+            name;
+
+    }
+
+
+    const tiers = [];
+
+
+    document
+        .querySelectorAll(".tier")
+        .forEach(tier => {
+
+            const label =
+                tier.querySelector(
+                    ".tier-label"
+                );
+
+
+            const tierName =
+                tier.querySelector(
+                    ".tier-name"
+                ).innerText.trim();
+
+
+            const images = [];
+
+
+            tier
+                .querySelectorAll(
+                    ".tier-image"
+                )
+                .forEach(img => {
+
+                    images.push(
+                        img.src
+                    );
+
+                });
+
+
+            tiers.push({
+
+                name:
+                    tierName,
+
+                color:
+                    label.style.background,
+
+                images
+
+            });
 
         });
 
-        return closest.element;
-    }
+
+    const pool = [];
 
 
-    // -------------------------
-    // ÜRES ÁLLAPOT
-    // -------------------------
+    imagePool
+        .querySelectorAll(
+            ".tier-image"
+        )
+        .forEach(img => {
 
-    function updateEmptyMessage() {
+            pool.push(
+                img.src
+            );
 
-        const message =
-            imagePool.querySelector(".empty-message");
-
-        const hasImages =
-            imagePool.querySelector(".pool-item");
-
-        if (hasImages && message) {
-
-            message.remove();
-
-        }
-
-        if (!hasImages && !message) {
-
-            const div =
-                document.createElement("div");
-
-            div.className = "empty-message";
-
-            div.textContent =
-                "Tölts fel képeket, majd húzd őket a tier-ekbe!";
-
-            imagePool.appendChild(div);
-
-        }
-
-    }
+        });
 
 
-    // -------------------------
-    // KÉPSZÁMLÁLÓ
-    // -------------------------
+    const savedList = {
 
-    function updateImageCount() {
+        id:
+            Date.now(),
 
-        const total =
-            document.querySelectorAll(".tier-image").length;
+        name,
 
-        imageCount.textContent =
-            total + (total === 1 ? " kép" : " kép");
+        created:
+            new Date().toLocaleString(
+                "hu-HU"
+            ),
 
-    }
+        tiers,
+
+        pool
+
+    };
 
 
-    // -------------------------
-    // MENTÉS
-    // -------------------------
+    const saved =
+        JSON.parse(
+            localStorage.getItem(
+                "savedTierLists"
+            )
+        ) || [];
 
-    function saveState() {
 
-        const tiers = [];
+    /*
+        Ha ugyanilyen nevű lista van,
+        akkor azt frissítjük.
+    */
 
-        document
-            .querySelectorAll(".tier")
-            .forEach(tier => {
+    const existingIndex =
+        saved.findIndex(
+            list =>
+                list.name === name
+        );
 
-                const label =
-                    tier.querySelector(".tier-label");
 
-                const name =
-                    tier.querySelector(".tier-name")
-                    .innerText;
+    if (existingIndex !== -1) {
 
-                const color =
-                    label.style.background;
+        saved[existingIndex] =
+            savedList;
 
-                const images = [];
+    } else {
 
-                tier
-                    .querySelectorAll(".tier-image")
-                    .forEach(img => {
-
-                        images.push(img.src);
-
-                    });
-
-                tiers.push({
-                    name,
-                    color,
-                    images
-                });
-
-            });
-
-        const pool = [];
-
-        imagePool
-            .querySelectorAll(".tier-image")
-            .forEach(img => {
-
-                pool.push(img.src);
-
-            });
-
-        localStorage.setItem(
-            "tierList",
-            JSON.stringify({
-                tiers,
-                pool
-            })
+        saved.push(
+            savedList
         );
 
     }
 
 
-    // -------------------------
-    // BETÖLTÉS
-    // -------------------------
-
-    function loadState() {
-
-        const saved =
-            localStorage.getItem("tierList");
-
-        if (!saved) {
-
-            createDefaultTiers();
-
-            return;
-
-        }
-
-        try {
-
-            const data =
-                JSON.parse(saved);
-
-            tierContainer.innerHTML = "";
-
-            data.tiers.forEach(tier => {
-
-                createTier(
-                    tier.name,
-                    tier.color
-                );
-
-                const createdTier =
-                    tierContainer.lastElementChild;
-
-                const zone =
-                    createdTier.querySelector(
-                        ".tier-items"
-                    );
-
-                tier.images.forEach(src => {
-
-                    const wrapper =
-                        document.createElement("div");
-
-                    wrapper.className = "pool-item";
-                    wrapper.draggable = true;
-
-                    const img =
-                        document.createElement("img");
-
-                    img.src = src;
-                    img.className = "tier-image";
-                    img.draggable = false;
-
-                    wrapper.appendChild(img);
-
-                    zone.appendChild(wrapper);
-
-                    setupDrag(wrapper);
-
-                });
-
-            });
+    localStorage.setItem(
+        "savedTierLists",
+        JSON.stringify(saved)
+    );
 
 
-            data.pool.forEach(src => {
+    alert(
+        "A tier list sikeresen el lett mentve!"
+    );
 
-                const wrapper =
-                    document.createElement("div");
 
-                wrapper.className = "pool-item";
-                wrapper.draggable = true;
+    showSavedLists();
 
-                const img =
-                    document.createElement("img");
+}
 
-                img.src = src;
-                img.className = "tier-image";
-                img.draggable = false;
 
-                wrapper.appendChild(img);
+/* =========================
+   MENTETT LISTÁK MEGJELENÍTÉSE
+========================= */
 
-                addDeleteButton(wrapper);
+function showSavedLists() {
 
-                imagePool.appendChild(wrapper);
+    editorPage.style.display =
+        "none";
 
-                setupDrag(wrapper);
+    savedPage.style.display =
+        "block";
 
-            });
 
-            updateEmptyMessage();
-            updateImageCount();
+    renderSavedLists();
 
-        } catch {
+}
 
-            createDefaultTiers();
 
-        }
+/* =========================
+   LISTÁK KIRAJZOLÁSA
+========================= */
+
+function renderSavedLists() {
+
+    savedLists.innerHTML = "";
+
+
+    const saved =
+        JSON.parse(
+            localStorage.getItem(
+                "savedTierLists"
+            )
+        ) || [];
+
+
+    if (saved.length === 0) {
+
+        savedLists.innerHTML = `
+
+            <div class="empty-message">
+
+                Még nincs mentett tier listád.
+
+            </div>
+
+        `;
+
+        return;
 
     }
 
 
-    // -------------------------
-    // RESET
-    // -------------------------
+    saved.forEach(list => {
 
-    function resetList() {
-
-        const confirmReset =
-            confirm(
-                "Biztosan törölni szeretnéd az egész tier listát?"
+        const card =
+            document.createElement(
+                "div"
             );
 
-        if (!confirmReset) return;
 
-        localStorage.removeItem("tierList");
+        card.className =
+            "saved-card";
 
-        location.reload();
+
+        /*
+            A previewhoz összeszedjük
+            az első néhány képet.
+        */
+
+        const previewImages = [];
+
+
+        list.tiers.forEach(tier => {
+
+            tier.images.forEach(img => {
+
+                if (
+                    previewImages.length < 4
+                ) {
+
+                    previewImages.push(
+                        img
+                    );
+
+                }
+
+            });
+
+        });
+
+
+        let preview = "";
+
+
+        if (
+            previewImages.length === 0
+        ) {
+
+            preview = `
+                <div class="saved-preview-empty">
+                    Nincsenek képek
+                </div>
+            `;
+
+        } else {
+
+            previewImages.forEach(img => {
+
+                preview += `
+                    <img src="${img}">
+                `;
+
+            });
+
+        }
+
+
+        card.innerHTML = `
+
+            <div class="saved-preview">
+                ${preview}
+            </div>
+
+
+            <div class="saved-info">
+
+                <h3>
+                    ${escapeHTML(list.name)}
+                </h3>
+
+                <div class="saved-date">
+                    ${list.created}
+                </div>
+
+
+                <div class="saved-actions">
+
+                    <button
+                        class="primary-button"
+                        onclick="openSavedList(${list.id})"
+                    >
+                        Megnyitás
+                    </button>
+
+
+                    <button
+                        class="delete-saved"
+                        onclick="deleteSavedList(${list.id})"
+                    >
+                        🗑️
+                    </button>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        savedLists.appendChild(card);
+
+    });
+
+}
+
+
+/* =========================
+   MENTETT LISTA MEGNYITÁSA
+========================= */
+
+function openSavedList(id) {
+
+    const saved =
+        JSON.parse(
+            localStorage.getItem(
+                "savedTierLists"
+            )
+        ) || [];
+
+
+    const list =
+        saved.find(
+            item =>
+                item.id === id
+        );
+
+
+    if (!list) {
+        return;
+    }
+
+
+    tierContainer.innerHTML = "";
+
+    imagePool.innerHTML = "";
+
+
+    listTitle.innerText =
+        list.name;
+
+
+    /*
+        Tier-ek visszaállítása
+    */
+
+    list.tiers.forEach(tier => {
+
+        createTier(
+            tier.name,
+            tier.color
+        );
+
+
+        const createdTier =
+            tierContainer.lastElementChild;
+
+
+        const zone =
+            createdTier.querySelector(
+                ".tier-items"
+            );
+
+
+        tier.images.forEach(src => {
+
+            const wrapper =
+                createImageElement(
+                    src
+                );
+
+
+            zone.appendChild(
+                wrapper
+            );
+
+        });
+
+    });
+
+
+    /*
+        Képtár visszaállítása
+    */
+
+    list.pool.forEach(src => {
+
+        const wrapper =
+            createImageElement(
+                src
+            );
+
+
+        imagePool.appendChild(
+            wrapper
+        );
+
+    });
+
+
+    updateImageCount();
+
+    updateEmptyMessage();
+
+
+    showEditor();
+
+}
+
+
+/* =========================
+   KÉP ELEMENT LÉTREHOZÁSA
+========================= */
+
+function createImageElement(src) {
+
+    const wrapper =
+        document.createElement(
+            "div"
+        );
+
+
+    wrapper.className =
+        "pool-item";
+
+
+    wrapper.draggable = true;
+
+
+    const img =
+        document.createElement(
+            "img"
+        );
+
+
+    img.src = src;
+
+    img.className =
+        "tier-image";
+
+    img.draggable = false;
+
+
+    wrapper.appendChild(img);
+
+
+    addDeleteButton(
+        wrapper
+    );
+
+
+    setupDrag(
+        wrapper
+    );
+
+
+    return wrapper;
+
+}
+
+
+/* =========================
+   MENTETT LISTA TÖRLÉSE
+========================= */
+
+function deleteSavedList(id) {
+
+    const confirmDelete =
+        confirm(
+            "Biztosan törölni szeretnéd ezt a tier listát?"
+        );
+
+
+    if (!confirmDelete) {
+        return;
+    }
+
+
+    let saved =
+        JSON.parse(
+            localStorage.getItem(
+                "savedTierLists"
+            )
+        ) || [];
+
+
+    saved =
+        saved.filter(
+            list =>
+                list.id !== id
+        );
+
+
+    localStorage.setItem(
+        "savedTierLists",
+        JSON.stringify(saved)
+    );
+
+
+    renderSavedLists();
+
+}
+
+
+/* =========================
+   ÚJ TIER LIST
+========================= */
+
+function showEditor() {
+
+    editorPage.style.display =
+        "block";
+
+    savedPage.style.display =
+        "none";
+
+}
+
+
+/* =========================
+   SZERKESZTŐ ÜRÍTÉSE
+========================= */
+
+function resetEditor() {
+
+    const confirmed =
+        confirm(
+            "Biztosan törlöd a jelenlegi szerkesztést?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    listTitle.innerText =
+        "Új Tier List";
+
+
+    tierContainer.innerHTML = "";
+
+    imagePool.innerHTML = "";
+
+
+    createDefaultTiers();
+
+
+    updateEmptyMessage();
+
+    updateImageCount();
+
+}
+
+
+/* =========================
+   ÜRES KÉPTÁR
+========================= */
+
+function updateEmptyMessage() {
+
+    const hasImages =
+        imagePool.querySelector(
+            ".pool-item"
+        );
+
+
+    const message =
+        imagePool.querySelector(
+            ".empty-message"
+        );
+
+
+    if (
+        hasImages &&
+        message
+    ) {
+
+        message.remove();
 
     }
 
 
-    // -------------------------
-    // INDÍTÁS
-    // -------------------------
+    if (
+        !hasImages &&
+        !message
+    ) {
 
-    loadState();
+        imagePool.innerHTML = `
+
+            <div class="empty-message">
+                Még nincsenek feltöltött képek.
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+/* =========================
+   KÉPSZÁMLÁLÓ
+========================= */
+
+function updateImageCount() {
+
+    const count =
+        document.querySelectorAll(
+            ".tier-image"
+        ).length;
+
+
+    imageCount.innerText =
+        `${count} kép`;
+
+}
+
+
+/* =========================
+   HTML BIZTONSÁG
+========================= */
+
+function escapeHTML(text) {
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+
+    div.textContent =
+        text;
+
+
+    return div.innerHTML;
+
+}
+
+
+/* =========================
+   CÍM FRISSÍTÉSE
+========================= */
+
+function updateCurrentTitle() {
+
+    /*
+        Ez azért van külön,
+        hogy később könnyen lehessen
+        autosave rendszert hozzáadni.
+    */
+
+}
+
+
+/* =========================
+   OLDAL BETÖLTÉS
+========================= */
+
+updateEmptyMessage();
+
+updateImageCount();
